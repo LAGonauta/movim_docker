@@ -13,7 +13,7 @@ if ! [ -e .git ]; then
 else
     echo >&2 "Movim already exists in $PWD - updating if required..."
     current=$(git rev-parse HEAD)
-    git pull --ff-only
+    git -c core.fileMode=false pull --ff-only
     new=$(git rev-parse HEAD)
     if [ $current != $new ]; then
         echo >&2 "Complete! Movim $current updated to $new"
