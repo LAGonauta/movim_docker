@@ -1,14 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if ! [ -e daemon.php -a -e public/index.php ]; then
-	echo >&2 "Movim not found in $PWD - copying now..."
-	if [ "$(ls -A)" ]; then
-		echo >&2 "WARNING: $PWD is not empty - press Ctrl+C now if this is an error!"
-		( set -x; ls -A; sleep 10 )
-	fi
-	tar cf - --one-file-system -C /usr/src/movim-${MOVIM_VERSION} . | tar xf -
-	echo >&2 "Complete! Movim ${MOVIM_VERSION} has been successfully copied to $PWD"
+updated=false
+just_cloned=false
+if ! [ -e .git ]; then
+    echo >&2 "Movim not found in $PWD - cloning now..."
+    git clone https://github.com/movim/movim.git .
+    current=$(git rev-parse HEAD)
+    echo >&2 "Complete! Movim $current cloned successfully to $PWD"
+    updated=true
+    just_cloned=true
+else
+    echo >&2 "Movim already exists in $PWD - updating if required..."
+    current=$(git rev-parse HEAD)
+    git pull --ff-only
+    new=$(git rev-parse HEAD)
+    if [ $current != $new ]; then
+        echo >&2 "Complete! Movim $current updated to $new"
+        updated=true
+    else
+        echo >&2 "Movim $current is already at latest version"
+    fi
+fi
+
+if [ "$just_cloned" == true ]; then
+    echo >&2 "Installing composer..."
+    curl -sS https://getcomposer.org/installer | php
+fi
+
+if [ "$updated" == true ]; then
+    echo >&2 "Installing dependencies..."
+    php composer.phar install --optimize-autoloader
 fi
 
 cat <<EOT > config/db.inc.php

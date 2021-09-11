@@ -39,22 +39,6 @@ RUN set -ex; \
 	rm -rf /var/lib/apt/lists/*
 
 VOLUME /var/www/html
-
-ENV MOVIM_VERSION 0.19.1rc6
-ENV MOVIM_SHA1 ec8eb54f406e4f240bf23e7a105e04a2bcbd97f4
-
-RUN set -ex; \
-	curl -o movim.tar.gz -fSL "https://github.com/movim/movim/archive/v${MOVIM_VERSION}.tar.gz"; \
-	echo "$MOVIM_SHA1 *movim.tar.gz" | sha1sum -c -; \
-	tar -xzf movim.tar.gz -C /usr/src/; \
-	rm movim.tar.gz; \
-	chown -R www-data:www-data /usr/src/movim-${MOVIM_VERSION}
-
-WORKDIR /usr/src/movim-${MOVIM_VERSION}
-
-RUN curl -sS https://getcomposer.org/installer | php \
-    && php composer.phar install --optimize-autoloader
-
 WORKDIR /var/www/html
 
 COPY docker-entrypoint.sh /usr/local/bin/
